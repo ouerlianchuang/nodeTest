@@ -1,60 +1,42 @@
 express = require 'express'
 path = require 'path'
+mongoose = require 'mongoose'
+_ = require 'underscore'
+Movie = require './models/movie'
 bodyParser = require 'body-parser'
 port = process.env.PORT || 3000
 app = express()
 
+mongoose.connect 'mongodb://localhost/nodetest'
+
 app.set 'views', './views/pages'
 app.set 'view engine', 'jade'
-app.use bodyParser.json()
+app.use bodyParser.urlencoded({extended: true})
 app.use express.static  path.join __dirname, 'bower_components'
 app.listen port
 
 # index page.json
 app.get '/' ,(req, res)->
-    res.render 'index',
-        title: 'NodeTest 首页'
-        movies: [
-            title: '机械战警'
-            _id: 1
-            poster: 'http://r3.ykimg.com/05160000530EEB63675839160D0B79D5'
-        ,
-            title: '机械战警'
-            _id: 2
-            poster: 'http://r3.ykimg.com/05160000530EEB63675839160D0B79D5'
-        ,
-            title: '机械战警'
-            _id: 3
-            poster: 'http://r3.ykimg.com/05160000530EEB63675839160D0B79D5'
-        ,
-            title: '机械战警'
-            _id: 4
-            poster: 'http://r3.ykimg.com/05160000530EEB63675839160D0B79D5'
-        ,
-            title: '机械战警'
-            _id: 5
-            poster: 'http://r3.ykimg.com/05160000530EEB63675839160D0B79D5'
-        ,
-            title: '机械战警'
-            _id: 6
-            poster: 'http://r3.ykimg.com/05160000530EEB63675839160D0B79D5'
-        ]
+    Movie.fetch (err, movies)->
+        if err
+            console.log err
+
+        res.render 'index',
+            title: 'NodeTest 首页'
+            movies: movies
 
 # detail page
 app.get '/movie/:id' ,(req, res)->
-    res.render 'detail',
-        title: 'NodeTest 详情页'
-        movie:
-            title: '机械战警'
-            _id: 1
-            doctor: '何塞。派蒂利亚'
-            country: '美国'
-            year: 2014
-            poster:'http://r3.ykimg.com/05160000530EEB63675839160D0B79D5'
-            language: '英语'
-            flash: 'http://player.youku.com/player.php/sid/XNjA1Njc0NTUy/v.swf'
-            summary: '这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简
-            介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介'
+    id = req.params.id
+
+    Movie.findById id, (err, movie)->
+        if err
+            console.log err
+
+        res.render 'detail',
+            title: "NodeTest #{movie.title} 详情页"
+            movie: movie
+
 # admin page
 app.get '/admin/movie' ,(req, res)->
     res.render 'admin',
@@ -69,74 +51,57 @@ app.get '/admin/movie' ,(req, res)->
             summary: ''
             language: ''
 
+
+# admin update movie
+app.get '/admin/update/:id', (req,res)->
+    id = req.params.id
+
+    if id
+        Movie.findById id, (err, movie)->
+            res.render 'admin',
+                title: 'NodeTest 后台更新页'
+                movie: movie
+
+# admin post movie
+app.post '/admin/movie/new', (req, res)->
+    console.log req
+    id = req.body.movie._id
+    movieObj = req.body.movie #晕
+
+    if id isnt 'undefined'
+        Movie.findById id, (err, movie)->
+            if err
+                console.log err
+
+            _movie = _.extend movie, movieObj
+            _movie.save (err, movie)->
+                if err
+                    console.log err
+
+                res.redirect "/movie/#{movie._id}"
+    else
+        _movie = new Movie
+            doctor : movieObj.doctor
+            title : movieObj.title
+            country : movieObj.country
+            language : movieObj.language
+            year : movieObj.year
+            poster : movieObj.poster
+            summary : movieObj.summary
+            flash : movieObj.flash
+        _movie.save (err, movie)->
+            if err
+                console.log err
+
+            res.redirect "/movie/#{movie._id}"
+
+
 # list page
 app.get '/admin/list' ,(req, res)->
-    res.render 'list',
-        title: 'NodeTest 列表页'
-        movies: [
-            title: '机械战警'
-            _id: 1
-            doctor: '何塞。派蒂利亚'
-            country: '美国'
-            year: 2014
-            poster:'http://r3.ykimg.com/05160000530EEB63675839160D0B79D5'
-            language: '英语'
-            flash: 'http://player.youku.com/player.php/sid/XNjA1Njc0NTUy/v.swf'
-            summary: '这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简
-            介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介'
-        ,
-            title: '机械战警'
-            _id: 2
-            doctor: '何塞。派蒂利亚'
-            country: '美国'
-            year: 2014
-            poster:'http://r3.ykimg.com/05160000530EEB63675839160D0B79D5'
-            language: '英语'
-            flash: 'http://player.youku.com/player.php/sid/XNjA1Njc0NTUy/v.swf'
-            summary: '这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简
-            介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介'
-        ,
-            title: '机械战警'
-            _id: 3
-            doctor: '何塞。派蒂利亚'
-            country: '美国'
-            year: 2014
-            poster:'http://r3.ykimg.com/05160000530EEB63675839160D0B79D5'
-            language: '英语'
-            flash: 'http://player.youku.com/player.php/sid/XNjA1Njc0NTUy/v.swf'
-            summary: '这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简
-            介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介'
-        ,
-            title: '机械战警'
-            _id: 4
-            doctor: '何塞。派蒂利亚'
-            country: '美国'
-            year: 2014
-            poster:'http://r3.ykimg.com/05160000530EEB63675839160D0B79D5'
-            language: '英语'
-            flash: 'http://player.youku.com/player.php/sid/XNjA1Njc0NTUy/v.swf'
-            summary: '这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简
-            介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介'
-        ,
-            title: '机械战警'
-            _id: 5
-            doctor: '何塞。派蒂利亚'
-            country: '美国'
-            year: 2014
-            poster:'http://r3.ykimg.com/05160000530EEB63675839160D0B79D5'
-            language: '英语'
-            flash: 'http://player.youku.com/player.php/sid/XNjA1Njc0NTUy/v.swf'
-            summary: '这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简
-            介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介'
-        ,
-            title: '机械战警'
-            _id: 6
-            doctor: '何塞。派蒂利亚'
-            country: '美国'
-            year: 2014
-            poster:'http://r3.ykimg.com/05160000530EEB63675839160D0B79D5'
-            language: '英语'
-            flash: 'http://player.youku.com/player.php/sid/XNjA1Njc0NTUy/v.swf'
-            summary: '这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简
-            介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介这是简介'
-        ]
+    Movie.fetch (err, movies)->
+        if err
+            console.log err
+
+        res.render 'index',
+            title: 'NodeTest 列表页'
+            movies: movies

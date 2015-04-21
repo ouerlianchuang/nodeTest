@@ -3,11 +3,12 @@ extends ../layout
 block content
     .container
         .row
-            form.form-horizontal(role="form", method="post", action="/admin/movie/new")
+            form.form-horizontal(method="post", action="/admin/movie/new")
+                input(type="hidden", name="movie[_id]", value="#{movie._id}")
                 .form-group
                     lable.col-sm-2.control-label(for="inputTitle")  电影名字
                     .col-sm-10
-                        input#inputTitle.form-control(type="text", value="#{movie.title}", name="movie[titlw]")
+                        input#inputTitle.form-control(type="text", value="#{movie.title}", name="movie.title")
                 .form-group
                     label.col-sm-2.control-label(for="inputDoctor") 电影导演
                     .col-sm-10
@@ -32,10 +33,6 @@ block content
                     label.col-sm-2.control-label(for="inputYear") 上映年代
                     .col-sm-10
                         input#inputYear.form-control(type="text", name="movie[year]", value="#{movie.year}")
-                .form-group
-                    label.col-sm-2.control-label(for="inputSummary") 电影简介
-                    .col-sm-10
-                        input#inputSummary.form-control(type="text", name="movie[summary]", value="#{movie.summary}")
                 .form-group
                     label.col-sm-2.control-label(for="inputSummary") 电影简介
                     .col-sm-10
