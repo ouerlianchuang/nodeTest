@@ -28,7 +28,7 @@ MovieSchema.pre('save', function(next){
         this.meta.creatAt = this.meta.updataAt = Date.now()
     }
     else {
-        this.meta.updataAt = Date.mow()
+        this.meta.updataAt = Date.now()
     }
     next()
 })
